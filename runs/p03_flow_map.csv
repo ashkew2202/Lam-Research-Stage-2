@@ -1,0 +1,8 @@
+duty_pct,mass_before_g,mass_after_g,mass_lost_g,time_s,q_lpm,notes
+20,2715,2715,0,15,0,motor did not run (below start duty)
+35,2715,2527,188,15,0.75,TK-03 on scale; P-03 outlet free; MANUAL ILK 0
+40,2527,2270,257,15,1.03,same
+45,2270,1978,292,15,1.17,same
+60,1978,1599,379,15,1.52,same
+80,3149,2661,488,15,1.95,same (after TK-03 refill)
+100,2661,2020,641,15,2.56,same

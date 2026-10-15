@@ -1,0 +1,7 @@
+run,pulses,time_s,mass_g,duty,before_g,after_g,note
+R1,9608,39.998,1500,1,2817,4317,
+R2,10080,47.002,1572,0.85,2830,4402,
+R3,9372,55.000,1470,0.7,2825,4295,
+R4,9720,65.006,1537,0.6,2820,4357,
+R5,10609,85.003,1701,0.5,2813,4514,
+R6,,,,1,,,aborted. stopped with the switch about 10 s into the run, no readings

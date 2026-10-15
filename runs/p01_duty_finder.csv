@@ -1,0 +1,10 @@
+run,session,mark,duty_pct,duration_s,mass_start_g,mass_end_g,gain_g,flow_lpm,notes
+1,20261008_160721_01_output_check,p1_100_start,100,30,1254,1868,614,1.23,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+2,20261008_160721_01_output_check,p1_50_start,50,30,840,1437,597,1.19,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+3,20261008_160721_01_output_check,p1_60_start,60,30,1437,2135,698,1.4,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+4,20261008_160721_01_output_check,p1_70_start,70,30,2135,2949,814,1.63,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+5,20261008_160721_01_output_check,p1_100b_start,100,30,1540,2628,1088,2.18,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+6,20261008_160721_01_output_check,p1_50b_start,50,30,1513,2121,608,1.22,"SOV-01 open, TK-01 -> TK-02, P-02/P-03 off; mass = scale incl. tank tare; 1 g = 1 mL"
+7,20261008_160721_01_output_check,plug2_p1_100_start,100,15,2984,3543,559,2.24,"L-301 arm unplugged from tee and tee port plugged; no bubbles; SOV-01 open, TK-01 -> TK-02"
+x1,20261008_160721_01_output_check,plug_p1_100_start,100,25,2400,2400,0,0.00,first plugged-arm attempt: no water moved; plug was not airtight (re-seated afterwards)
+x2,20261008_160721_01_output_check,lstrip_start,50,74.1,2121,3604,1483,1.20,run until LS-01 tripped at 3604 g on the scale; bubbles seen in P-01 suction line (tee arm connected)

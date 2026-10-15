@@ -1,0 +1,6 @@
+P-02 free delivery test, 8 Oct 2026
+
+Pump nameplate: 9-14.4 V, 2.5-3.5 A, 6.25 bar, 6.1 L/min
+Setup: P-02 outlet taken off BV-02/FT-01 and a short hose put into a bucket on the scale. Suction side as installed, sump full.
+20 s at 100% duty: scale 3284 to 4196 g = 912 g in 19.999 s = 2.74 L/min (FT-01 not in the line)
+For comparison the full loop (BV-02 open, FT-01, return line) gives 2.26 L/min. The nameplate says 6.1 L/min.

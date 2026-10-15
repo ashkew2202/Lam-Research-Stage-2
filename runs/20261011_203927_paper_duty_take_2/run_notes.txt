@@ -1,0 +1,17 @@
+Take 2 (the run in the video), 11 Oct 2026. Switch pressed at about 20:39:29, stopped automatically at 20:42:06.
+Full Case 1 + Case 2 run with automatic stop. P-01 at 50% and P-02 at 100% in Case 1, as the paper says. Firmware 1.2.
+
+Settings (saved in the ESP32 flash): d1=0.5 d2=1 d1f=1 d3=0.85 tc1=75 tbv=15 tfl=65 bvmode=0 tfmax=240 isok=0 finv=1 mwd=15
+FT-01 calibration: a=0.009093 b=0.06022 fcut=23.5 (from the five weighed runs in cal_runs_20261011.csv)
+Water loaded: TK-01 3.4 L, TK-02 2.9 L, TK-03 3.2 L. A 1.2 L jug was poured into TK-02 during Case 1.
+
+Case 1: 75 s, 2.846 L returned, FT-01 steady at 2.30 L/min (38.4 mL/s).
+Float went high at +30.3 s (the pour). P-01 stopped and SOV-01 closed, P-02 kept running at 2.31 L/min.
+Float cleared and P-01 restarted at +48.8 s.
+Flow dipped to 1.9 L/min for about 3 s during the pour. No fault was flagged.
+
+Case 2: BV-01 window started at +76.6 s (15 s), flush started at +91.6 s.
+FT-01 mean 2.16 L/min in the flush (lowest 1.9), steady 2.28 for the last 7 s.
+Stopped on the P-03 run timer (65.0 s of P-03, flush 65.6 s), 2.977 L returned in Case 2.
+All outputs off at +157.2 s. Total 5.832 L.
+TK-03 ran empty right at the stop.

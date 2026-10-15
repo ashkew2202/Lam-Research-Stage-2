@@ -1,0 +1,9 @@
+valve_pct,valve_angle_deg_from_closed,p02_duty,session,pulses,time_s,f_hz,ft01_q_lpm,mass_g,scale_q_lpm,ft01_vs_scale_pct,notes
+75,67.5,1.0,20261008_185925_02_calibration,10481,45.005,232.89,2.178,1630,2.173,+0.2,"TK-01 2721 to 4351 g, BV-02 angle set with a protractor, sump full at start"
+100,90,1.0,20261008_185925_02_calibration,10841,45.001,240.91,2.251,1697,2.263,-0.5,"TK-01 2715 to 4412 g, BV-02 fully open, sump full at start"
+50,45,1.0,20261008_185925_02_calibration,11890,60.005,198.15,1.862,1882,1.882,-1.1,"TK-01 2707 to 4589 g, BV-02 at 45 deg by protractor, sump full at start"
+100,90,0.6,20261008_193906_03_valve_sweep,8831,60.001,147.18,1.399,1394,1.394,+0.3,"P-02 at 60% duty, TK-01 2724 to 4118 g, BV-02 fully open"
+40,36,0.6,20261008_193906_03_valve_sweep,4396,60.008,73.26,0.726,764,0.764,-4.9,"P-02 at 60% duty, TK-01 2662 to 3426 g, BV-02 at 36 deg, pump not clicking"
+33,30,0.6,20261008_193906_03_valve_sweep,3112,60.002,51.86,0.532,566,0.566,-6.0,"P-02 at 60% duty, TK-01 2638 to 3204 g, BV-02 at 30 deg, pump not clicking"
+25,22.5,1.0,20261008_185925_02_calibration,0,30,0,0,0,0,,"two tries (10 s and 20 s) at 100% duty. No FT-01 pulses, TK-01 2735 to 2726 g (no gain), P-02 clicking on its pressure switch, only a dribble at the return. A 120 s run at 40% duty also moved no water and then the P-02 push-fit blew off"
+70,63,1.0,20261011_191948_10_paper_duty,9677,40.001,241.92,2.260,1464,2.196,+2.9,"measured 11 Oct (the other rows are 8 Oct). TK-01 2840 to 4304 g, BV-02 at 63 deg by protractor, sump full at start. FT-01 frequency did not drop with the valve at 63 deg (244.4 Hz, against 243.3 Hz fully open the same evening) but the weighed flow was 2.4% lower"

@@ -1,153 +1,59 @@
-# Lam-Research-Stage-2
+# Flow rig code - Team Catalysts (LRC-26-0146)
 
-Three-pump flow rig on an ESP32 and the Stage 2 PCB. This file covers installing the USB driver, building and flashing the test sketches, wiring notes for this specific rig, and the test order from a dry bring-up to the full single take.
+Lam Research Challenge 3.0, Stage 2.
 
-## 1. What you need
+This is the ESP32 firmware for our three pump flow rig, the laptop scripts we used for logging and plotting, and the data we measured on the rig.
 
-- Windows laptop, a USB cable that carries data (not a charge-only cable), VS Code
-- ESP32 board (uPesy WROOM) on the Stage 2 PCB, 12 V SMPS, three IBT-2 drivers, SOV-01, FT-01, LS-01 float
-- Scale (1 g), a 0.8 L jug, a drip tray, a multimeter
+## Files
 
-## 2. USB driver (do this first)
+| Path | What it is |
+|---|---|
+| firmware/lam_flow_rig/src/main.cpp | The controller (firmware 1.2, Arduino-ESP32 core 2.0.17) |
+| firmware/lam_flow_rig/platformio.ini | PlatformIO build file. Upload with `pio run -e upesy_wroom -t upload` |
+| firmware/lam_flow_rig/lam_flow_rig.ino | Empty sketch file so the folder also opens in the Arduino IDE |
+| tools/rig_daq.py | Logger. Holds the serial port and writes telemetry.csv, events.csv and cal.csv |
+| tools/live_plot.py | Live plot of FT-01 flow (L/min and mL/s), litres returned, pump duties, float switch and solenoid valve |
+| tools/daq_client.py | Helper the other scripts use to send commands through the logger |
+| tools/run_capture.py | Copies one run out of a logging session into its own folder |
+| tools/cal_session.py | Walks through the weighed calibration runs |
+| tools/cal_fit.py | Fits Q = a*f + b, prints R^2 and the errors, plots the fit |
+| tools/plot_run.py | Flow vs time plot of a recorded run |
+| tools/plot_valve.py | Valve position vs flow plot (Q2.1) |
+| tools/theory.py | Velocity, Reynolds number and residence time numbers for the hand calculations |
+| runs/ | Measured data: calibration runs, valve sweep, pump tests and the recorded Case 1 + Case 2 run |
 
-The board talks to the laptop through a USB-to-serial chip. Without its driver the board does not appear as a COM port and uploads fail with "port is busy or doesn't exist".
+## How the controller works
 
-1. Plug the board in with USB only. In Device Manager, open Ports (COM & LPT) and note what is there. Unplug the board and see which entry disappears. Ignore ports that stay (usually Bluetooth).
-2. If no new COM port appears, install the driver for your board's chip. The uPesy WROOM normally uses a Silicon Labs CP210x chip:
-   - Download the Windows driver from https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers
-   - Unzip it, right-click the `.inf` file (or run the installer), choose Install
-3. If the chip is a CH340 instead, use the WCH driver from https://www.wch-ic.com/downloads/CH341SER_EXE.html
-4. Unplug and replug the board. Device Manager should now show a new entry such as "Silicon Labs CP210x USB to UART Bridge (COM7)". Use that COM number below.
-5. Still nothing: try another cable (use one that moves files from a phone), another USB port, and plug the board in alone with nothing on the PCB socket.
+Case 1. One press of the on/off switch (HS-01) starts P-02, opens SOV-01 and starts P-01. When the sump float switch LS-01 goes high, P-01 stops and SOV-01 closes while P-02 keeps running. When the level drops and the float clears, P-01 starts again.
 
-To tell which chip you have: Device Manager, right-click the port, Properties, Details, Hardware Ids. `10C4:EA60` is CP210x, `1A86:7523` is CH340.
+Case 2. When the Case 1 time is over, SOV-01 closes to isolate the 10 L tank. The operator gets a fixed time window to open BV-01. Then P-01, P-02 and P-03 run together. There is no level sensor on the flush tank, so the flush stops on a P-03 run timer. We set the timer from the measured flush rate and the volume we load into the flush tank. After that every output is switched off and stays off.
 
-## 3. Project setup (PlatformIO)
+Flow. FT-01 pulses are counted with an interrupt. Flow is Q = a*f + b, taken as zero below a cutoff frequency, and it is totalised over the whole run.
 
-Install VS Code and the PlatformIO IDE extension. Open the project folder (the one that holds `platformio.ini`).
+Protection. Sump high stops P-01 and P-03 and closes SOV-01 in every mode. P-02 trips after 5 s without flow.
 
-Layout:
+## Results from our rig
 
-```
-platformio.ini
-src/
-  main.cpp              rig firmware (leave as it is)
-  bringup/main.cpp      component test (valve, button, float, flow sensor, pumps)
-  motordebug/main.cpp   single motor debug tool
-  watertest/main.cpp    staged water test and full single take
-```
+- Calibration from five weighed runs between 1.2 and 2.25 L/min (runs/cal_runs_20261011.csv): a = 0.009093 L/min per Hz, b = 0.0602 L/min, R^2 = 0.9998, maximum error 0.46%, average error 0.27%.
+- Maximum flow through the loop with P-02 at 100% duty is 2.3 L/min (2.74 L/min with a free outlet). The organisers accepted this limit in place of the 3 L/min target.
+- Recorded run (runs/20261011_203927_paper_duty_take_2) with P-01 at 50% and P-02 at 100%: Case 1 for 75 s at 2.30 L/min, 2.85 L returned. P-01 stopped on the float at +30.3 s and restarted at +48.8 s. Flush with all three pumps for 65.6 s. Automatic stop at +157 s with the flush tank empty. 5.83 L returned in total.
 
-`platformio.ini`:
-
-```ini
-[env:upesy_wroom]
-platform = espressif32
-board = upesy_wroom
-framework = arduino
-monitor_speed = 115200
-monitor_filters = time
-build_flags = -Wall -Wextra -Wno-unused-parameter
-build_src_filter = +<*> -<bringup/> -<motordebug/> -<watertest/>
-
-[env:bringup]
-platform = espressif32
-board = upesy_wroom
-framework = arduino
-monitor_speed = 115200
-build_flags = -Wall -Wextra -Wno-unused-parameter
-build_src_filter = -<*> +<bringup/>
-
-[env:motordebug]
-platform = espressif32
-board = upesy_wroom
-framework = arduino
-monitor_speed = 115200
-build_src_filter = -<*> +<motordebug/>
-
-[env:watertest]
-platform = espressif32
-board = upesy_wroom
-framework = arduino
-monitor_speed = 115200
-build_flags = -Wall -Wextra -Wno-unused-parameter
-build_src_filter = -<*> +<watertest/>
-```
-
-If auto-detect picks the wrong port, add `upload_port = COM7` (your number) to the env.
-
-### Flash and monitor
-
-Close any other program using the port first (serial monitor, Python console). Switch the 12 V supply off, keep USB connected, then:
+## Running the scripts
 
 ```
-pio run -e bringup -t upload
-pio device monitor -e bringup
+pip install pyserial matplotlib numpy
+
+python3 tools/cal_fit.py runs/cal_runs_20261011.csv cal.png
+python3 tools/plot_run.py runs/20261011_203927_paper_duty_take_2 case_trend.png
+python3 tools/plot_valve.py q21_valve.png
+python3 tools/theory.py
 ```
 
-Replace `bringup` with `motordebug` or `watertest`. In VS Code you can use the PlatformIO sidebar: Project Tasks, choose the env, Upload, then Monitor. Send each command with Enter.
+Logging a run on the rig:
 
-If upload hangs on "Connecting...", hold the BOOT button until it starts writing.
+```
+python3 tools/rig_daq.py --session take_1
+python3 tools/run_capture.py take_1
+```
 
-To go back to the rig firmware: `pio run -e upesy_wroom -t upload`.
-
-## 4. Wiring notes for this rig
-
-| Item | State |
-| --- | --- |
-| LSL-03 probe (G4), ZSO-01 (G5), IBT-2 current sense R_IS / L_IS (G15, G36, G39) | Not connected. The sketches never read them. |
-| Pump 2 drive pins | Swapped in code: RPWM = G18, LPWM = G19 (G19 stays low). The signal wire from G19 does not reach the module. Wires stay in their original positions and the pump's motor leads are swapped so it turns the right way. |
-| Float (LS-01, G35) | Reads LOW when the water is high. The sketches flip it (`FLOAT_INVERTED = true`). A broken float wire reads as "level OK", so overfill protection is lost if the wire breaks. Turning the float over and setting `FLOAT_INVERTED = false` restores that. |
-| Flush end | No empty-tank sensor and no pump current. Case 2 ends on a timer of P-03 running time (`tfl`), measured in stage 4. |
-
-12 V supply: switch it on first, then connect USB (or press `g` / start the test after it is on). Never plug or unplug motor leads with the supply on. Mains side wiring needs a qualified person's check: close the SMPS terminal cover and bond its earth terminal.
-
-## 5. Test order
-
-### 5.1 Bring-up (`bringup`)
-
-No water needed. `a` runs everything; a number runs one test.
-
-1. SOV-01 valve: it clicks open and shut three times (listen)
-2. HS-01 button: reads 1 at rest, 0 when pressed
-3. LS-01 float: moves between both levels
-4. FT-01 signal: blow through the meter, pulses appear
-5. P-01, P-02, P-03 and all three pumps: dry run mode spins each pump 5 s. Confirm by sound or vibration.
-6. Status LED: blinks five times
-
-### 5.2 If a motor does not turn (`motordebug`)
-
-Select one pump (`sel 2`) and run `d 60`. Measure at the IBT-2 with a multimeter: B+ to B− about 12 V, VCC 3.3 V, R_EN and L_EN about 3.3 V, RPWM averaging about 2 V. `r 60` tests the other half of the driver, `pin rp 1` holds the forward pin high, `sweep` finds the starting duty. Outputs stop on their own after 15 s. `stop` shuts everything off.
-
-### 5.3 Water test (`watertest`)
-
-Fill TK-01 about 3.4 L, TK-03 4.2 L, TK-02 empty. Valves: BV-01 shut, BV-02 fully open, BV-03 open. Float jumper removed.
-
-| Stage | Command | What it does | Pass |
-| --- | --- | --- | --- |
-| 1 | `1` | P-01 moves water TK-01 to the sump (20 s) | Water arrives in TK-02 |
-| 2 | `2` | P-02 loop through FT-01 (30 s). TK-02 needs at least 1.9 L. | Pulses and a mean near 3 L/min |
-| 4 | `4` | P-01 and P-03 flush-rate run. Open BV-01, shut it afterwards, weigh TK-03, then `lit <litres>` and `save`. | Flush timer `tfl` is set |
-| 3 | `3` | Case 1 for 180 s. Pour 0.8 L at the POUR NOW cue. | P-01 stops, P-02 keeps running, P-01 restarts, mean flow about 3.0 L/min |
-| 5 | `5` | Case 2. Open BV-01 when the LED blinks fast. | All pumps run, then stop on the timer |
-| 6 | `6` or the button | Full take: Case 1 then Case 2 | Whole run with only BV-01 opened by hand |
-
-`a` runs stages 1 to 5 with a pause for refilling. `x` stops everything. `st` shows status. `get`, `set <key> <value>` and `save` manage parameters. `cal <seconds> <duty%>` makes a timed P-02 run for calibration.
-
-Full take timeline: P-02 starts, then SOV-01 opens and P-01 starts. The pour cue appears at 60 s, the float trips, P-01 stops, P-02 carries on, then P-01 restarts. At 180 s Case 2 starts: SOV-01 closes, the LED blinks fast, BV-01 is opened, then P-01 and P-03 flush with P-02 running. When the flush timer ends, everything stops. About six minutes in total.
-
-## 6. Known risks
-
-- The sump can drain at the start of Case 1: P-02 at 100% can draw more than P-01 at 50% refills through SOV-01. Measure both flows with stages 1 and 2. If needed, throttle BV-02 to about 3 L/min or raise P-01's duty (`set d1 0.8`) and justify the change with your data. Watch the sump and type `x` if it runs low.
-- There is no dry-run protection (no current sensing). Pump runs are short and stop only on timers, the float, or `x`.
-- A flush timer set too long runs P-03 dry. Set it from stage 4.
-
-## 7. Troubleshooting
-
-| Symptom | Likely cause |
-| --- | --- |
-| "Could not open COM, semaphore timeout" | No driver or a charge-only cable. See section 2. |
-| Linker error "undefined reference to setup() / loop()" | The sketch is outside the filter. Put it in `src/<name>/main.cpp` and check `build_src_filter`. |
-| `ledcAttach was not declared` | An older core with a sketch written for core 3. Use the supplied sketches, which pick the right call. |
-| `REFUSED: LS-01 ... level high` | The float reports high. Lower it, or check the wiring and `FLOAT_INVERTED`. |
-| Pump silent in the pump tests | Check B+ and B− at the module, VCC 3.3 V, enables, then use the motor debug tool. |
-| No pulses from FT-01 | Air in the meter, missing 5 V on its red wire, or the G14 divider. |
+The first command starts the logger and the live plot. The second one is run in another terminal before pressing the switch.
